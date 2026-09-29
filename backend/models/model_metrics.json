@@ -1,0 +1,28 @@
+{
+  "auc": 0.7142857142857143,
+  "accuracy": 0.8888888888888888,
+  "precision": 0.875,
+  "recall": 1.0,
+  "f1": 0.9333333333333333,
+  "feature_importance": {
+    "margin_pct": 161,
+    "budget_variance_pct": 8,
+    "revenue_log": 48,
+    "schedule_variance_days": 152,
+    "avg_critical_delay_days": 34,
+    "ticket_total": 12,
+    "ticket_high_priority": 8,
+    "ticket_critical": 0,
+    "sla_breach_rate_pct": 48,
+    "sla_breach_count": 6,
+    "change_request_count": 1,
+    "change_request_approval_rate": 8,
+    "change_request_cost_impact": 19,
+    "utilization_pct": 24,
+    "overtime_pct": 66,
+    "client_satisfaction": 3,
+    "client_satisfaction_declining": 2
+  },
+  "n_train": 21,
+  "n_test": 9
+}

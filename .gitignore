@@ -1,0 +1,33 @@
+# Environment (never commit real keys; .env.example is the template)
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# SQLite sidecars (the bundled backend/engageiq.db itself IS committed intentionally)
+*.db-wal
+*.db-shm
+*.db-journal
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+*.tsbuildinfo
+*.log
+
+# OS / editors
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/*
+
+# NOTE: backend/engageiq.db and backend/models/ are intentionally tracked —
+# they are the bundled demo dataset and trained model used by Docker.

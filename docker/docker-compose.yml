@@ -1,0 +1,23 @@
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    environment:
+      DATABASE_URL: sqlite:///./engageiq.db
+      NEMOTRON_API_KEY: ${NEMOTRON_API_KEY:-}
+      NEMOTRON_BASE_URL: ${NEMOTRON_BASE_URL:-https://integrate.api.nvidia.com/v1}
+      FRONTEND_URL: http://localhost:3000
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
