@@ -3,7 +3,9 @@ from decimal import Decimal
 from datetime import date, timedelta
 
 from app.ml.risk_model import (
+    DEFAULT_RISK_WEIGHTS,
     extract_features,
+    load_risk_weights,
     predict_risk,
     generate_training_labels,
     train_model,
@@ -197,6 +199,13 @@ def test_generate_training_labels(db, sample_engagement):
     assert len(X) > 0
     assert len(y) == len(X)
     assert set(y.unique()).issubset({0, 1})
+
+
+def test_load_risk_weights_defaults():
+    weights = load_risk_weights()
+    assert set(weights) == set(DEFAULT_RISK_WEIGHTS)
+    assert abs(sum(weights.values()) - 1.0) < 1e-9
+    assert all(v >= 0 for v in weights.values())
 
 
 def test_shap_explanation(db, sample_engagement):

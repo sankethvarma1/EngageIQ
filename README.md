@@ -37,7 +37,7 @@ Professional services organizations struggle to maintain visibility across their
 - **Synthetic Data Generator**: Reproducible data with realistic patterns (healthy, financially deteriorating, delayed, high-change, high-ticket, SLA degradation, declining satisfaction, utilization issues)
 - **KPI Analytics**: Revenue, cost, margin, budget variance, schedule variance, ticket backlog, SLA breach rate, change request rate, utilization, client satisfaction
 - **Risk Model**: Interpretable baseline + LightGBM with configurable weights (financial 30%, delivery 25%, operational 20%, client 15%, data quality 10%)
-- **SHAP Explanations**: Top feature contributions for each engagement's risk score
+- **SHAP Explanations**: Top feature contributions to the LightGBM model's predicted risk probability (the ML part of the blended score, not the final composite)
 - **Anomaly Detection**: Statistical detection of utilization spikes, margin deterioration, ticket surges, SLA degradation, change request growth, satisfaction declines
 - **RAG Knowledge Base**: 5 policy documents with semantic search (delivery playbook, SLA policy, escalation policy, margin management, project governance)
 - **AI Investigation**: Tool-based agent orchestration for natural-language queries when an LLM key is configured; otherwise a labeled mock answer
@@ -59,32 +59,42 @@ Professional services organizations struggle to maintain visibility across their
 
 ### Prerequisites
 
-- Python 3.12 and Node.js 20 for manual setup, or Docker & Docker Compose
+- Python 3.11+ and Node.js 20+ for manual setup (Docker images use Python 3.12), or Docker & Docker Compose
 - (Optional) NVIDIA Nemotron API key for LLM investigation
 
 ### Local Development
 
 ```bash
 # Clone and navigate
-cd engageiq
+git clone https://github.com/sankethvarma1/EngageIQ.git
+cd EngageIQ
 
-# Optional: cp .env.example .env and set NEMOTRON_API_KEY
+# Optional: cp .env.example backend/.env and set NEMOTRON_API_KEY
 
 # Start all services
 docker compose -f docker/docker-compose.yml up --build
 ```
 
 Services will be available at:
-- Frontend: http://localhost:3001
+- Frontend: http://localhost:3000
 - Backend API: http://localhost:8000
 - API Docs: http://localhost:8000/docs
+
+> **Port note:** 3000 is the default. If Next.js reports that 3000 is occupied
+> and serves the app on port 3001 instead, open
+> **http://localhost:3001/dashboard** and start the backend with
+> `FRONTEND_URL=http://localhost:3001` (e.g.
+> `FRONTEND_URL=http://localhost:3001 python -m uvicorn app.main:app --reload`)
+> so the backend CORS policy matches the frontend origin. An app already
+> listening on port 3000 may be a different, unrelated process — check with
+> `lsof -i :3000` (macOS) before assuming it is EngageIQ.
 
 The Docker backend uses the bundled SQLite dataset and saved LightGBM model.
 The database inside the container is reset when the container is recreated.
 
 ### Run locally in two terminals (without Docker)
 
-Start both terminals from the `engageiq` project directory. Use Python 3.12 and Node.js 20 or newer.
+Start both terminals from the project directory (`EngageIQ` after cloning). Use Python 3.11+ and Node.js 20 or newer.
 
 Terminal 1 — backend:
 
@@ -143,7 +153,7 @@ Key tables:
 
 The risk model combines:
 1. **Interpretable Baseline** (60% weight): Rule-based scoring across 5 risk dimensions
-2. **LightGBM Model** (40% weight): Trained on historical engagement outcomes
+2. **LightGBM Model** (40% weight): Trained on synthetic historical engagement outcomes (rule-derived labels, see target variable below)
 
 Target variable: Binary high-risk label derived from margin < 10%, schedule variance > 30 days, SLA breach > 20%, satisfaction < 5.
 
@@ -151,7 +161,7 @@ Target variable: Binary high-risk label derived from margin < 10%, schedule vari
 
 ### SHAP Explanations
 
-TreeSHAP provides per-engagement feature contributions. The UI shows top 10 drivers with directionality (red = increases risk, green = decreases risk).
+TreeSHAP provides per-engagement feature contributions for the trained LightGBM model output (the 40% ML component of the risk score, not the blended composite). The UI shows top 10 drivers with directionality (red = increases risk, green = decreases risk).
 
 **Important**: SHAP explains model behavior, not causality. Features may be correlated proxies.
 
@@ -258,4 +268,4 @@ engageiq/
 
 ## License
 
-MIT License - Portfolio project for demonstration purposes.
+MIT License — see [LICENSE](LICENSE). Portfolio project for demonstration purposes.
