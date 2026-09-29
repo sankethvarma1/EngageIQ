@@ -52,7 +52,7 @@ Professional services organizations struggle to maintain visibility across their
 | Analytics | Pandas, NumPy |
 | ML | scikit-learn, LightGBM, SHAP |
 | RAG | sentence-transformers, in-memory embeddings |
-| Frontend | Next.js 16, React 18, TypeScript, Tailwind CSS, Recharts |
+| Frontend | Next.js 16, React 18, TypeScript, Tailwind CSS, HTML/CSS charts |
 | Infrastructure | Docker, Docker Compose |
 
 ## Quick Start

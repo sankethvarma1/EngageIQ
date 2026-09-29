@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { engagementApi } from '@/lib/api';
 import { RiskBadge } from '@/components/RiskBadge';
 import { SHAPChart } from '@/components/SHAPChart';
-import { TrendChart } from '@/components/TrendChart';
 import { formatCurrency, formatFixed, formatPercent, getSeverityBadgeClass } from '@/lib/utils';
 import { Engagement, EngagementKPIs, RiskFactors, SHAPExplanation, Anomaly } from '@/types';
 

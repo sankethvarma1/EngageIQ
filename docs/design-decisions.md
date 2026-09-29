@@ -106,7 +106,9 @@ Failed tool calls reported to LLM for adaptation.
 React `useState`/`useEffect` for MVP. No Redux/Zustand needed yet.
 
 ### Charting
-Recharts for all visualizations. Responsive containers.
+HTML/CSS bar visualizations with Tailwind. Recharts was removed after its
+charts rendered blank in this stack; labeled div-based bars show SHAP drivers
+and feature importance with no chart dependency.
 
 ### Styling
 Tailwind CSS with custom color palette (primary, risk levels).

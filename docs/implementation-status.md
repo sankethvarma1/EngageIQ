@@ -82,7 +82,7 @@
 - [x] AI investigation page with sample questions
 - [x] Model performance page (metrics, feature importance, methodology)
 - [x] Responsive Tailwind CSS design
-- [x] Recharts visualizations
+- [x] HTML/CSS visualizations (Recharts removed after blank-render issue)
 
 ### Infrastructure
 - [x] Backend Dockerfile (Python 3.12 slim)
