@@ -51,6 +51,34 @@ class ModelMetrics:
     n_test: int
 
 
+DEFAULT_RISK_WEIGHTS = {
+    "financial": 0.3,
+    "delivery": 0.25,
+    "operational": 0.2,
+    "client": 0.15,
+    "data_quality": 0.1,
+}
+
+
+def load_risk_weights() -> Dict[str, float]:
+    """Baseline risk-component weights.
+
+    Overridable via the RISK_MODEL_WEIGHTS env var (JSON object mapping each
+    component to a weight). Falls back to DEFAULT_RISK_WEIGHTS on any missing
+    or invalid value; custom weights are normalized to sum to 1.
+    """
+    try:
+        from app.core.config import get_settings
+        raw = json.loads(get_settings().risk_model_weights)
+        weights = {k: float(raw[k]) for k in DEFAULT_RISK_WEIGHTS if k in raw}
+        if not weights or sum(weights.values()) <= 0:
+            return dict(DEFAULT_RISK_WEIGHTS)
+        total = sum(weights.values())
+        return {k: v / total for k, v in weights.items()}
+    except Exception:
+        return dict(DEFAULT_RISK_WEIGHTS)
+
+
 def extract_features(db, engagement_id: str) -> Dict[str, float]:
     kpis = calculate_all_kpis(db, engagement_id)
 
@@ -275,7 +303,7 @@ def predict_risk(db, engagement_id: str, model: Optional[lgb.Booster] = None) ->
     if util < 40 or util > 95: data_quality_risk = 0.5
     if overtime > 20: data_quality_risk = max(data_quality_risk, 0.6)
 
-    weights = {"financial": 0.3, "delivery": 0.25, "operational": 0.2, "client": 0.15, "data_quality": 0.1}
+    weights = load_risk_weights()
     composite = (
         weights["financial"] * financial_risk +
         weights["delivery"] * delivery_risk +

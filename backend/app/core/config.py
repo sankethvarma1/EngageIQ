@@ -1,6 +1,12 @@
 from functools import lru_cache
 
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Populate os.environ from a CWD-relative .env file as well, so modules that
+# read os.getenv directly (e.g. the LLM provider) honor the same file that
+# pydantic-settings already reads for Settings fields.
+load_dotenv()
 
 
 class Settings(BaseSettings):
