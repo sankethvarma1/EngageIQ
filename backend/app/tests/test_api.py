@@ -251,3 +251,14 @@ def test_ai_investigate(client, setup_data):
 def test_model_metrics(client):
     response = client.get("/api/engagements/model/metrics")
     assert response.status_code in [200, 404]
+
+
+def test_retrain_disabled_returns_403(client, monkeypatch):
+    from app.core.config import get_settings
+    monkeypatch.setattr(get_settings(), "allow_model_retrain", False)
+    try:
+        response = client.post("/api/engagements/model/retrain")
+        assert response.status_code == 403
+        assert "disabled" in response.json()["detail"]
+    finally:
+        monkeypatch.setattr(get_settings(), "allow_model_retrain", True)

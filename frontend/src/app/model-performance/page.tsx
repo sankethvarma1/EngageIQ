@@ -75,9 +75,15 @@ export default function ModelPerformancePage() {
           <h1 className="text-2xl font-bold text-slate-900">Model Performance</h1>
           <p className="text-slate-500 mt-1">Engagement Risk Model Metrics & Feature Importance</p>
         </div>
-        <button onClick={handleRetrain} disabled={retraining} className="btn-primary">
-          {retraining ? 'Training...' : 'Retrain Model'}
-        </button>
+        {process.env.NEXT_PUBLIC_ALLOW_RETRAIN !== 'false' ? (
+          <button onClick={handleRetrain} disabled={retraining} className="btn-primary">
+            {retraining ? 'Training...' : 'Retrain Model'}
+          </button>
+        ) : (
+          <p className="text-xs text-slate-500 max-w-xs">
+            Retraining is disabled in the public demo to protect the bundled model.
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">

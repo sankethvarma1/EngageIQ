@@ -24,6 +24,9 @@ class Settings(BaseSettings):
 
     # ML
     risk_model_weights: str = '{"financial": 0.3, "delivery": 0.25, "operational": 0.2, "client": 0.15, "data_quality": 0.1}'
+    # Set ALLOW_MODEL_RETRAIN=false on public demos: retraining overwrites the
+    # bundled model files, which is undesirable on ephemeral demo disks.
+    allow_model_retrain: bool = True
 
     # LLM
     nemotron_api_key: str = ""

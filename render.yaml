@@ -1,0 +1,26 @@
+# Render blueprint for the EngageIQ FastAPI backend (free plan).
+# Deploy via Render dashboard: New > Blueprint > connect this repo.
+# The Next.js frontend is deployed separately on Vercel; after it exists,
+# set FRONTEND_URL to its public URL so backend CORS matches.
+services:
+  - type: web
+    name: engageiq-backend
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DATABASE_URL
+        value: sqlite:///./engageiq.db
+      - key: FRONTEND_URL
+        value: http://localhost:3000
+      - key: ALLOW_MODEL_RETRAIN
+        value: false
+      - key: NEMOTRON_API_KEY
+        sync: false
+      - key: LOG_LEVEL
+        value: INFO

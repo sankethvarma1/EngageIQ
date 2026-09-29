@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.ml.risk_model import predict_risk, get_model_metrics, retrain_model
 from app.api.schemas import RiskFactors, ModelMetrics
+from app.core.config import get_settings
 from app.db.session import get_db
 
 router = APIRouter()
@@ -30,6 +31,11 @@ def get_model_metrics_endpoint():
 
 @router.post("/model/retrain", response_model=ModelMetrics)
 def retrain_model_endpoint():
+    if not get_settings().allow_model_retrain:
+        raise HTTPException(
+            status_code=403,
+            detail="Model retraining is disabled in this deployment.",
+        )
     try:
         metrics = retrain_model()
         return metrics

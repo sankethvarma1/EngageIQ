@@ -32,8 +32,10 @@ export const engagementApi = {
 };
 
 export const aiApi = {
+  // Free-tier backends sleep and cold-start (plus first-use embedding
+  // download), so investigation gets a longer timeout than the default.
   investigate: (data: InvestigateRequest) =>
-    api.post<InvestigateResponse>('/ai/investigate', data),
+    api.post<InvestigateResponse>('/ai/investigate', data, { timeout: 120000 }),
 };
 
 export const modelApi = {

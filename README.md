@@ -121,6 +121,32 @@ Open **http://localhost:3000/dashboard**. The backend health check is
 The investigation page returns a labeled mock response unless you set
 `NEMOTRON_API_KEY` in Terminal 1 or in `backend/.env`.
 
+## Public Demo Deployment (Render + Vercel, free plans)
+
+Deploy the backend first, then point the frontend at its public URL.
+
+**1. Backend on Render** (free web service):
+- In Render: New > Blueprint > connect this repo (`render.yaml` defines the service).
+- Set `FRONTEND_URL` later (step 3). Leave `ALLOW_MODEL_RETRAIN=false` (protects the
+  bundled model on ephemeral disks) and `NEMOTRON_API_KEY` empty (mock mode).
+- Note the public URL, e.g. `https://engageiq-backend.onrender.com`.
+  Health check: `GET /health`.
+
+**2. Frontend on Vercel** (free):
+- Import the repo, set Root Directory to `frontend`, keep the Next.js defaults.
+- Environment variables (set **before** building — they are inlined at build time):
+  - `NEXT_PUBLIC_API_URL=https://<your-render-backend>.onrender.com/api`
+  - `NEXT_PUBLIC_ALLOW_RETRAIN=false`
+
+**3. Connect them:** set Render `FRONTEND_URL` to the Vercel URL
+(e.g. `https://engageiq.vercel.app`) so backend CORS matches, then redeploy the backend.
+
+**Free-plan notes:** Render sleeps idle services — the first request can take
+up to ~2 minutes (cold start, plus embedding download on first RAG use; the
+investigate call allows 120s). The demo stays in mock-AI mode with no key, so
+the heavy embedding model never loads and memory stays within the 512 MB free
+tier. Disks are ephemeral: keep `ALLOW_MODEL_RETRAIN=false` publicly.
+
 ## Environment Variables
 
 | Variable | Description | Required |
@@ -129,7 +155,10 @@ The investigation page returns a labeled mock response unless you set
 | `NEMOTRON_API_KEY` | NVIDIA API key for LLM | No (uses mock) |
 | `NEMOTRON_BASE_URL` | Nemotron API endpoint | No |
 | `RISK_MODEL_WEIGHTS` | JSON string of risk component weights | No |
+| `ALLOW_MODEL_RETRAIN` | Set `false` to disable `POST /model/retrain` (demo protection) | No |
+| `FRONTEND_URL` | Public frontend origin for backend CORS | No (local default) |
 | `NEXT_PUBLIC_API_URL` | Backend API URL (defaults to `http://localhost:8000/api`) | No |
+| `NEXT_PUBLIC_ALLOW_RETRAIN` | Set `false` to hide the demo retrain button | No |
 
 ## Database Schema
 
