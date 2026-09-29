@@ -31,3 +31,7 @@ Thumbs.db
 
 # NOTE: backend/engageiq.db and backend/models/ are intentionally tracked —
 # they are the bundled demo dataset and trained model used by Docker.
+
+# Next.js + Python caches
+frontend/.next/
+**/__pycache__/
