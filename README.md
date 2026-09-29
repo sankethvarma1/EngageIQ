@@ -29,6 +29,20 @@ Consulting teams track time, budgets, tickets, milestones, and client feedback i
 | Frontend | Next.js, React, TypeScript, Tailwind CSS |
 | Infrastructure | Docker, Docker Compose |
 
+## Screenshots
+
+### Portfolio Dashboard
+![Portfolio dashboard](docs/screenshots/dashboard.png)
+
+### Engagement Risk Analysis
+![Engagement detail with SHAP explanations](docs/screenshots/engagement-detail.png)
+
+### Engagement Portfolio
+![Engagement list](docs/screenshots/engagements-list.png)
+
+### Model Performance
+![Model performance](docs/screenshots/model-performance.png)
+
 ## Quick Start
 
 ### Prerequisites
