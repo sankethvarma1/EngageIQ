@@ -1,35 +1,10 @@
 # EngageIQ
 
-**Client Delivery Intelligence & Outcome Assurance Platform**
-
-An enterprise-style analytics platform for monitoring client engagements across financial performance, delivery performance, operational performance, workforce utilization, SLA performance, and client satisfaction.
+A dashboard for monitoring client engagements. It stores engagement data in SQLite, computes KPIs with Python, scores engagement risk with a LightGBM model, explains predictions with SHAP, and serves everything through a FastAPI backend and a Next.js frontend.
 
 ## Problem
 
-Professional services organizations struggle to maintain visibility across their engagement portfolio. Risk signals are scattered across multiple systems (timesheets, budgets, tickets, milestones, client feedback), making it difficult to identify deteriorating engagements early. This platform consolidates data, computes KPIs, scores risk, explains drivers, and enables AI-assisted investigation.
-
-## Architecture
-
-```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  SQLite         │────▶│  FastAPI        │────▶│  Next.js        │
-│  (Data Layer)   │     │  (Backend)      │     │  (Frontend)     │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-                              │
-                              ▼
-                    ┌─────────────────┐
-                    │  ML Pipeline    │
-                    │  (Risk Model +  │
-                    │   SHAP)         │
-                    └─────────────────┘
-                              │
-                              ▼
-                    ┌─────────────────┐
-                    │  RAG / Agents   │
-                    │  (Knowledge     │
-                    │   Base + LLM)   │
-                    └─────────────────┘
-```
+Consulting teams track time, budgets, tickets, milestones, and client feedback in different places. When an engagement starts slipping, the warning signs are spread out and easy to miss. This project pulls that data together, calculates KPIs, scores risk, and shows what is driving the score.
 
 ## Features
 
@@ -47,12 +22,11 @@ Professional services organizations struggle to maintain visibility across their
 
 | Layer | Technology |
 |-------|------------|
-| Backend | Python 3.12, FastAPI, SQLAlchemy 2.0, Pydantic 2 |
+| Backend | Python, FastAPI, SQLAlchemy |
 | Database | SQLite (bundled synthetic dataset) |
 | Analytics | Pandas, NumPy |
-| ML | scikit-learn, LightGBM, SHAP |
-| RAG | sentence-transformers, in-memory embeddings |
-| Frontend | Next.js 16, React 18, TypeScript, Tailwind CSS, HTML/CSS charts |
+| ML | LightGBM, SHAP |
+| Frontend | Next.js, React, TypeScript, Tailwind CSS |
 | Infrastructure | Docker, Docker Compose |
 
 ## Quick Start
@@ -60,7 +34,7 @@ Professional services organizations struggle to maintain visibility across their
 ### Prerequisites
 
 - Python 3.11+ and Node.js 20+ for manual setup (Docker images use Python 3.12), or Docker & Docker Compose
-- (Optional) NVIDIA Nemotron API key for LLM investigation
+- (Optional) An external LLM API key for live investigation (otherwise the investigation endpoint returns clearly labeled mock responses)
 
 ### Local Development
 
@@ -68,44 +42,21 @@ Professional services organizations struggle to maintain visibility across their
 # Clone and navigate
 git clone https://github.com/sankethvarma1/EngageIQ.git
 cd EngageIQ
-
-# Optional: cp .env.example backend/.env and set NEMOTRON_API_KEY
-
-# Start all services
-docker compose -f docker/docker-compose.yml up --build
 ```
 
-Services will be available at:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- API Docs: http://localhost:8000/docs
-
-> **Port note:** 3000 is the default. If Next.js reports that 3000 is occupied
-> and serves the app on port 3001 instead, open
-> **http://localhost:3001/dashboard** and start the backend with
-> `FRONTEND_URL=http://localhost:3001` (e.g.
-> `FRONTEND_URL=http://localhost:3001 python -m uvicorn app.main:app --reload`)
-> so the backend CORS policy matches the frontend origin. An app already
-> listening on port 3000 may be a different, unrelated process — check with
-> `lsof -i :3000` (macOS) before assuming it is EngageIQ.
-
-The Docker backend uses the bundled SQLite dataset and saved LightGBM model.
-The database inside the container is reset when the container is recreated.
-
-### Run locally in two terminals (without Docker)
-
-Start both terminals from the project directory (`EngageIQ` after cloning). Use Python 3.11+ and Node.js 20 or newer.
+The frontend and backend run as two separate processes, so use two terminals
+and keep both open while using the dashboard.
 
 Terminal 1 — backend:
 
 ```bash
 cd backend
-python3.12 -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
 # The bundled backend/engageiq.db already contains 40 synthetic engagements.
-python -m uvicorn app.main:app --reload
+FRONTEND_URL=http://localhost:3001 python -m uvicorn app.main:app --reload
 ```
 
 Terminal 2 — frontend:
@@ -113,47 +64,30 @@ Terminal 2 — frontend:
 ```bash
 cd frontend
 npm ci
-npm run dev
+npm run dev -- --port 3001
 ```
 
-Open **http://localhost:3000/dashboard**. The backend health check is
-**http://localhost:8000/health**. Keep both terminals open while using the dashboard.
-The investigation page returns a labeled mock response unless you set
-`NEMOTRON_API_KEY` in Terminal 1 or in `backend/.env`.
+Open **http://localhost:3001/dashboard**. The backend API is at
+**http://localhost:8000**, with interactive docs at
+**http://localhost:8000/docs** and a health check at
+**http://localhost:8000/health**.
 
-## Public Demo Deployment (Render + Vercel, free plans)
+These are the exact settings this setup was tested with. `FRONTEND_URL` must
+match the frontend origin or the browser blocks API calls (CORS). If port
+3001 is taken on your machine, use another port and update both the URL and
+`FRONTEND_URL` to match.
 
-Deploy the backend first, then point the frontend at its public URL.
-
-**1. Backend on Render** (free web service):
-- In Render: New > Blueprint > connect this repo (`render.yaml` defines the service).
-- Set `FRONTEND_URL` later (step 3). Leave `ALLOW_MODEL_RETRAIN=false` (protects the
-  bundled model on ephemeral disks) and `NEMOTRON_API_KEY` empty (mock mode).
-- Note the public URL, e.g. `https://engageiq-backend.onrender.com`.
-  Health check: `GET /health`.
-
-**2. Frontend on Vercel** (free):
-- Import the repo, set Root Directory to `frontend`, keep the Next.js defaults.
-- Environment variables (set **before** building — they are inlined at build time):
-  - `NEXT_PUBLIC_API_URL=https://<your-render-backend>.onrender.com/api`
-  - `NEXT_PUBLIC_ALLOW_RETRAIN=false`
-
-**3. Connect them:** set Render `FRONTEND_URL` to the Vercel URL
-(e.g. `https://engageiq.vercel.app`) so backend CORS matches, then redeploy the backend.
-
-**Free-plan notes:** Render sleeps idle services — the first request can take
-up to ~2 minutes (cold start, plus embedding download on first RAG use; the
-investigate call allows 120s). The demo stays in mock-AI mode with no key, so
-the heavy embedding model never loads and memory stays within the 512 MB free
-tier. Disks are ephemeral: keep `ALLOW_MODEL_RETRAIN=false` publicly.
+To enable live investigation answers instead of mock responses, copy
+`.env.example` to `backend/.env` and set `NEMOTRON_API_KEY` there (or export
+it in Terminal 1 before starting the backend).
 
 ## Environment Variables
 
 | Variable | Description | Required |
 |----------|-------------|----------|
 | `DATABASE_URL` | SQLite URL (defaults to `sqlite:///./engageiq.db` when run from `backend/`) | No |
-| `NEMOTRON_API_KEY` | NVIDIA API key for LLM | No (uses mock) |
-| `NEMOTRON_BASE_URL` | Nemotron API endpoint | No |
+| `NEMOTRON_API_KEY` | External LLM API key (enables live investigation answers; otherwise mock) | No (uses mock) |
+| `NEMOTRON_BASE_URL` | External LLM API endpoint (OpenAI-compatible chat completions) | No |
 | `RISK_MODEL_WEIGHTS` | JSON string of risk component weights | No |
 | `ALLOW_MODEL_RETRAIN` | Set `false` to disable `POST /model/retrain` (demo protection) | No |
 | `FRONTEND_URL` | Public frontend origin for backend CORS | No (local default) |
@@ -219,7 +153,7 @@ The AI investigator orchestrates these deterministic tools:
 - `detect_anomalies` - Statistical anomaly detection
 - `retrieve_evidence` - RAG knowledge base search
 
-**LLM mode**: Without `NEMOTRON_API_KEY`, `/api/ai/investigate` runs in mock mode — the endpoint, tool schemas, and evidence plumbing are real, but the final narrative is a labeled placeholder (`[Mock Response]...`), not Nemotron output. Set the key to enable real Nemotron responses. Never present mock output as model-generated analysis.
+**LLM mode**: Without `NEMOTRON_API_KEY`, `/api/ai/investigate` runs in mock mode — the endpoint, tool schemas, and evidence plumbing are real, but the final narrative is a labeled placeholder (`[Mock Response]...`), not a live model answer. Set the key to enable live external-LLM responses. Never present mock output as model-generated analysis.
 In mock mode, the provider returns a placeholder without calling the investigation tools; the response has empty `tool_calls` and `evidence` arrays. Semantic retrieval downloads the embedding model on first use and requires internet access then.
 
 ## Testing
@@ -239,7 +173,7 @@ npm run typecheck
 ## Project Structure
 
 ```
-engageiq/
+EngageIQ/
 ├── backend/
 │   ├── app/
 │   │   ├── api/v1/          # FastAPI routes
@@ -269,31 +203,17 @@ engageiq/
 │   ├── docker-compose.yml
 │   ├── Dockerfile.backend
 │   └── Dockerfile.frontend
+├── render.yaml
 ├── .env.example
 └── README.md
 ```
 
-## Limitations
+## Current Limitations
 
-- No authentication/authorization implemented
-- SQLite is used for the bundled demo; PostgreSQL and pgvector are not used in this version
-- RAG uses in-memory embeddings; the embedding model needs a first-time download
-- Nemotron integration uses mock provider without API key
-- No background job processing (retraining is synchronous)
-- Single-tenant; no multi-organization support
-- No audit logging or data lineage
-
-## Future Work
-
-- [ ] Authentication (OAuth2/OIDC)
-- [ ] pgvector integration for production RAG
-- [ ] Background job queue (Celery/Redis) for model retraining
-- [ ] Alerting engine (webhook/email on risk threshold breach)
-- [ ] Engagement comparison views
-- [ ] What-if scenario modeling
-- [ ] Export to PDF/PowerPoint
-- [ ] Multi-tenant support
-- [ ] Audit trail and data lineage
+- The dataset contains 40 synthetic engagements, so model metrics are for pipeline validation rather than production evaluation.
+- Investigation uses labeled mock responses unless an external LLM key is configured.
+- The application is single-tenant and does not include user authentication.
+- Retraining is synchronous and intended for controlled local use.
 
 ## License
 
